@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ferretería · Gestión de productos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+          --steel:#1f3a4d; --steel-2:#2c4d64; --bg:#eceff1; --card:#fff; --line:#d9dee2;
+          --text:#1c2730; --muted:#66757f; --accent:#f2a900; --accent-d:#c78a00;
+          --ok:#1f7a4d; --ok-bg:#dff3e8; --warn:#9a6700; --warn-bg:#fff0c7; --bad:#b3261e; --bad-bg:#fbe0dd;
+        }
+        *{box-sizing:border-box}
+        body{margin:0;background:var(--bg);color:var(--text);font-family:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px}
+        header{background:var(--steel);color:#fff;border-bottom:4px solid var(--accent)}
+        .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+        header .wrap{display:flex;align-items:center;justify-content:space-between;padding-top:18px;padding-bottom:18px}
+        .brand{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:700;letter-spacing:.5px;margin:0}
+        .brand small{display:block;font-family:'Barlow',sans-serif;font-size:14px;font-weight:400;color:#b9c8d2;letter-spacing:0}
+        main{padding:24px 0 60px}
+        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+        .stat{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--steel);border-radius:6px;padding:14px 16px}
+        .stat.alert{border-left-color:var(--bad)}
+        .stat b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:30px;line-height:1.1}
+        .stat span{color:var(--muted);font-size:14px}
+        .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+        .toolbar input,.toolbar select{height:42px;border:1px solid var(--line);border-radius:6px;padding:0 12px;font:inherit;background:#fff;color:var(--text)}
+        .toolbar input{flex:1;min-width:200px}
+        button{font:inherit;cursor:pointer;border:0;border-radius:6px}
+        button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #7fb2d6;outline-offset:1px}
+        .btn{height:42px;padding:0 18px;font-weight:600}
+        .btn-primary{background:var(--accent);color:#1c1500}
+        .btn-primary:hover{background:var(--accent-d);color:#fff}
+        .btn-ghost{background:#fff;border:1px solid var(--line);color:var(--text)}
+        .btn-ghost:hover{background:var(--bg)}
+        .btn-danger{background:var(--bad);color:#fff}
+        .panel{background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+        .scroll{overflow-x:auto}
+        table{width:100%;border-collapse:collapse;min-width:720px}
+        th{background:#f6f8f9;text-align:left;font-weight:600;font-size:14px;color:var(--muted);padding:12px 16px;border-bottom:1px solid var(--line)}
+        td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+        tbody tr:last-child td{border-bottom:0}
+        tbody tr:hover{background:#fafbfb}
+        td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+        .name b{display:block}
+        .name small{color:var(--muted)}
+        .cat{background:#e4ebf0;color:var(--steel);padding:3px 10px;border-radius:99px;font-size:13px;font-weight:500;white-space:nowrap}
+        .badge{padding:3px 10px;border-radius:99px;font-size:13px;font-weight:600;white-space:nowrap}
+        .badge.ok{background:var(--ok-bg);color:var(--ok)}
+        .badge.low{background:var(--warn-bg);color:var(--warn)}
+        .badge.out{background:var(--bad-bg);color:var(--bad)}
+        .actions{white-space:nowrap;text-align:right}
+        .icon{background:none;padding:6px 10px;color:var(--steel);font-weight:600}
+        .icon:hover{background:var(--bg)}
+        .icon.del{color:var(--bad)}
+        .empty{padding:50px 20px;text-align:center;color:var(--muted)}
+        .empty b{display:block;color:var(--text);font-size:18px;margin-bottom:6px}
+        dialog{border:0;border-radius:10px;padding:0;width:min(520px,94vw);box-shadow:0 20px 60px rgba(20,30,40,.35)}
+        dialog::backdrop{background:rgba(20,35,48,.55)}
+        dialog form{padding:22px}
+        dialog h2{margin:0 0 16px;font-family:'Barlow Condensed',sans-serif;font-size:26px}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .full{grid-column:1/-1}
+        label{display:block;font-size:14px;font-weight:600;margin-bottom:4px}
+        label input,label textarea{display:block;width:100%;margin-top:4px;border:1px solid var(--line);border-radius:6px;padding:9px 11px;font:inherit;font-weight:400}
+        textarea{resize:vertical;min-height:70px}
+        .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+        #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--steel);color:#fff;padding:12px 20px;border-radius:6px;opacity:0;pointer-events:none;transition:.25s;z-index:10}
+        #toast.show{opacity:1;transform:translateX(-50%)}
+        #toast.error{background:var(--bad)}
+        @media(max-width:760px){.stats{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}
+        @media(prefers-reduced-motion:reduce){#toast{transition:none}}
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="wrap">
+        <h1 class="brand">Ferretería<small>Gestión de productos</small></h1>
+        <button class="btn btn-primary" id="btnNuevo">Nuevo producto</button>
+    </div>
+</header>
+
+<main class="wrap">
+    <section class="stats" aria-label="Resumen">
+        <div class="stat"><b id="sTotal">0</b><span>Productos</span></div>
+        <div class="stat"><b id="sUnidades">0</b><span>Unidades en stock</span></div>
+        <div class="stat"><b id="sValor">$0</b><span>Valor del inventario</span></div>
+        <div class="stat alert"><b id="sBajo">0</b><span>Con stock bajo o sin stock</span></div>
+    </section>
+
+    <div class="toolbar">
+        <input id="buscar" type="search" placeholder="Buscar por nombre, marca o descripción" aria-label="Buscar productos">
+        <select id="filtroCat" aria-label="Filtrar por categoría"><option value="">Todas las categorías</option></select>
+        <select id="orden" aria-label="Ordenar">
+            <option value="nombre">Ordenar por nombre</option>
+            <option value="precio-asc">Precio: menor a mayor</option>
+            <option value="precio-desc">Precio: mayor a menor</option>
+            <option value="stock-asc">Stock: menor a mayor</option>
+        </select>
+    </div>
+
+    <div class="panel">
+        <div class="scroll">
+            <table>
+                <thead>
+                <tr><th>Producto</th><th>Categoría</th><th>Marca</th><th class="num">Precio</th><th class="num">Stock</th><th></th></tr>
+                </thead>
+                <tbody id="tabla"></tbody>
+            </table>
+        </div>
+        <div class="empty" id="vacio" hidden></div>
+    </div>
+</main>
+
+<!-- Modal crear / editar -->
+<dialog id="dlgForm">
+    <form id="form" method="dialog">
+        <h2 id="formTitulo">Nuevo producto</h2>
+        <div class="grid">
+            <label class="full">Nombre<input id="fNombre" required maxlength="120"></label>
+            <label>Categoría<input id="fCategoria" list="listaCat" required></label>
+            <datalist id="listaCat"></datalist>
+            <label>Marca<input id="fMarca" required></label>
+            <label>Precio (ARS)<input id="fPrecio" type="number" min="0" step="0.01" required></label>
+            <label>Stock (unidades)<input id="fStock" type="number" min="0" step="1" required></label>
+            <label class="full">Descripción<textarea id="fDescripcion"></textarea></label>
+        </div>
+        <div class="foot">
+            <button type="button" class="btn btn-ghost" id="btnCancelar">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar producto</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Modal eliminar -->
+<dialog id="dlgEliminar">
+    <form method="dialog">
+        <h2>Eliminar producto</h2>
+        <p id="txtEliminar"></p>
+        <div class="foot">
+            <button type="button" class="btn btn-ghost" id="btnNoEliminar">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="btnSiEliminar">Eliminar producto</button>
+        </div>
+    </form>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+    const API = "/api/productos";
+    const STOCK_BAJO = 5;
+    let productos = [];
+    let editandoId = null;
+    let eliminandoId = null;
+
+    const $ = id => document.getElementById(id);
+    const dinero = n => new Intl.NumberFormat("es-AR", {style:"currency", currency:"ARS"}).format(n);
+    const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+    function aviso(msg, error = false) {
+      const t = $("toast");
+      t.textContent = msg;
+      t.className = "show" + (error ? " error" : "");
+      clearTimeout(aviso.t);
+      aviso.t = setTimeout(() => t.className = "", 3200);
+    }
+
+    async function pedir(url, opciones) {
+      const res = await fetch(url, opciones);
+      const texto = await res.text();
+      if (!res.ok) {
+        let msg = texto;
+        try { msg = JSON.parse(texto).message || JSON.parse(texto).error || texto; } catch {}
+        console.error("Respuesta del servidor:", texto);
+        msg = (msg || "Error " + res.status).toString();
+        throw new Error(msg.length > 160 ? msg.slice(0, 160) + "… (más detalle en la consola F12)" : msg);
+      }
+      try { return JSON.parse(texto); } catch { return texto; }
+    }
+
+    async function cargar() {
+      try {
+        productos = await pedir(API);
+        actualizarCategorias();
+        dibujar();
+      } catch (e) {
+        productos = [];
+        dibujar();
+        $("vacio").hidden = false;
+        $("vacio").innerHTML = "<b>No se pudo conectar con el servidor</b>Revisá que la aplicación Spring Boot esté en ejecución y que MySQL esté encendido.";
+        aviso("No se pudieron cargar los productos", true);
+      }
+    }
+
+    function actualizarCategorias() {
+      const cats = [...new Set(productos.map(p => p.categoria).filter(Boolean))].sort();
+      const actual = $("filtroCat").value;
+      $("filtroCat").innerHTML = '<option value="">Todas las categorías</option>' +
+        cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+      $("filtroCat").value = cats.includes(actual) ? actual : "";
+      $("listaCat").innerHTML = cats.map(c => `<option value="${esc(c)}">`).join("");
+    }
+
+    function estadoStock(n) {
+      if (n <= 0) return ['out', 'Sin stock'];
+      if (n <= STOCK_BAJO) return ['low', n + ' · Stock bajo'];
+      return ['ok', n + ' disponibles'];
+    }
+
+    function dibujar() {
+      // estadísticas (sobre todos los productos)
+      $("sTotal").textContent = productos.length;
+      $("sUnidades").textContent = productos.reduce((a, p) => a + p.stock, 0);
+      $("sValor").textContent = dinero(productos.reduce((a, p) => a + p.precio * p.stock, 0));
+      $("sBajo").textContent = productos.filter(p => p.stock <= STOCK_BAJO).length;
+
+      // filtros
+      const q = $("buscar").value.trim().toLowerCase();
+      const cat = $("filtroCat").value;
+      let lista = productos.filter(p =>
+        (!cat || p.categoria === cat) &&
+        (!q || [p.nombre, p.marca, p.descripcion, p.categoria].some(v => (v || "").toLowerCase().includes(q)))
+      );
+      const orden = $("orden").value;
+      lista.sort((a, b) =>
+        orden === "precio-asc" ? a.precio - b.precio :
+        orden === "precio-desc" ? b.precio - a.precio :
+        orden === "stock-asc" ? a.stock - b.stock :
+        (a.nombre || "").localeCompare(b.nombre || "", "es"));
+
+      $("tabla").innerHTML = lista.map(p => {
+        const [clase, texto] = estadoStock(p.stock);
+        return `<tr>
+          <td class="name"><b>${esc(p.nombre)}</b>${p.descripcion ? `<small>${esc(p.descripcion)}</small>` : ""}</td>
+          <td><span class="cat">${esc(p.categoria)}</span></td>
+          <td>${esc(p.marca)}</td>
+          <td class="num">${dinero(p.precio)}</td>
+          <td class="num"><span class="badge ${clase}">${texto}</span></td>
+          <td class="actions">
+            <button class="icon" data-editar="${p.id}">Editar</button>
+            <button class="icon del" data-eliminar="${p.id}">Eliminar</button>
+          </td>
+        </tr>`;
+      }).join("");
+
+      const vacio = $("vacio");
+      vacio.hidden = lista.length > 0;
+      if (!lista.length) {
+        vacio.innerHTML = productos.length
+          ? "<b>Sin resultados</b>Probá con otra búsqueda o cambiá el filtro de categoría."
+          : "<b>Todavía no hay productos</b>Usá el botón “Nuevo producto” para cargar el primero.";
+      }
+    }
+
+    // ---- Crear / editar ----
+    function abrirForm(p = null) {
+      editandoId = p ? p.id : null;
+      $("formTitulo").textContent = p ? "Editar producto" : "Nuevo producto";
+      $("fNombre").value = p?.nombre ?? "";
+      $("fCategoria").value = p?.categoria ?? "";
+      $("fMarca").value = p?.marca ?? "";
+      $("fPrecio").value = p?.precio ?? "";
+      $("fStock").value = p?.stock ?? "";
+      $("fDescripcion").value = p?.descripcion ?? "";
+      $("dlgForm").showModal();
+      $("fNombre").focus();
+    }
+
+    $("form").addEventListener("submit", async e => {
+      e.preventDefault();
+      const datos = {
+        id: editandoId ?? 0,
+        nombre: $("fNombre").value.trim(),
+        categoria: $("fCategoria").value.trim(),
+        marca: $("fMarca").value.trim(),
+        precio: parseFloat($("fPrecio").value),
+        stock: parseInt($("fStock").value, 10),
+        descripcion: $("fDescripcion").value.trim()
+      };
+      try {
+        await pedir(editandoId ? `${API}/${editandoId}` : API, {
+          method: editandoId ? "PUT" : "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(datos)
+        });
+        $("dlgForm").close();
+        aviso(editandoId ? "Producto actualizado" : "Producto guardado");
+        cargar();
+      } catch (err) {
+        aviso(err.message, true);
+      }
+    });
+
+    // ---- Eliminar ----
+    $("btnSiEliminar").addEventListener("click", async () => {
+      try {
+        await pedir(`${API}/${eliminandoId}`, {method: "DELETE"});
+        $("dlgEliminar").close();
+        aviso("Producto eliminado");
+        cargar();
+      } catch (err) {
+        aviso(err.message, true);
+      }
+    });
+
+    // ---- Eventos ----
+    $("tabla").addEventListener("click", e => {
+      const ed = e.target.closest("[data-editar]");
+      const el = e.target.closest("[data-eliminar]");
+      if (ed) abrirForm(productos.find(p => p.id == ed.dataset.editar));
+      if (el) {
+        const p = productos.find(p => p.id == el.dataset.eliminar);
+        eliminandoId = p.id;
+        $("txtEliminar").textContent = `Se va a eliminar “${p.nombre}”. Esta acción no se puede deshacer.`;
+        $("dlgEliminar").showModal();
+      }
+    });
+    $("btnNuevo").addEventListener("click", () => abrirForm());
+    $("btnCancelar").addEventListener("click", () => $("dlgForm").close());
+    $("btnNoEliminar").addEventListener("click", () => $("dlgEliminar").close());
+    ["buscar", "filtroCat", "orden"].forEach(id => $(id).addEventListener("input", dibujar));
+
+    cargar();
+</script>
+</body>
+</html>
